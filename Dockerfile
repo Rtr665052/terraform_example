@@ -5,8 +5,19 @@ FROM python:3.9-slim
 WORKDIR /app
 
 # Copy requirements and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get dist-upgrade -y && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --only-upgrade \
+        libc-bin \
+        coreutils \
+        bash \
+        dpkg \
+        apt \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir --upgrade \
+    pip \
+    setuptools \
+    urllib3
 
 # Copy application code
 COPY . .

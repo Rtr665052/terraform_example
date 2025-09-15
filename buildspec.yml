@@ -32,7 +32,7 @@ phases:
       - echo Pushing Docker image...
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ImageName:latest
   
-  artifacts:
-    files:
-      - zap_warnings.html
-      - zap_warnings.md
+artifacts:
+  files:
+    - zap_warnings.html
+    - zap_warnings.md

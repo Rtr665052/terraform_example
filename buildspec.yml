@@ -23,8 +23,8 @@ phases:
       - docker run -d -p 8080:8080 --name myapp $ImageName
 
       - echo "Running OWASP ZAP baseline scan..."
-      - docker run -v $(pwd):/zap/wrk/:rw --network="host" -t owasp/zap2docker-stable \
-          zap-baseline.py -t http://localhost:8080 -r zap_report.html -w zap_warnings.md
+      - docker run -v $(pwd):/zap/wrk/:rw --network="host" owasp/zap2docker-stable zap-baseline.py -t http://localhost:8080 -r zap_report.html -w zap_warnings.md
+
   post_build:
     commands:
       - echo Tagging Docker image...

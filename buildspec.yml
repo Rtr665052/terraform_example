@@ -19,10 +19,14 @@ phases:
       - echo Building Docker image...
       - docker build -t $ImageName -f ./Dockerfile .
 
-      - echo "Running container for DAST scan..."
-      - docker run -d -p 8080:8080 --name myapp $ImageName
+      - echo "Starting app container..."
+      - docker run -d --name app-under-test -p 8080:8080 $ImageName:latest
+      - echo "Waiting for app to start..."
+      - sleep 15
 
       - echo "Running OWASP ZAP baseline scan..."
+      - mkdir -p zap_output
+      - chmod 777 zap_output
       - docker run -v $(pwd):/zap/wrk/:rw --network="host" zaproxy/zap-stable zap-baseline.py -t http://localhost:8080 -r zap_report.html -w zap_warnings.md
 
   post_build:

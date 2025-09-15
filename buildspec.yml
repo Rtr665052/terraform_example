@@ -12,11 +12,24 @@ phases:
     commands:
       - echo "Running SAST with Semgrep..."
       - semgrep --config=p/ci --error
+
       - echo Building Docker image...
       - docker build -t $ImageName -f ./Dockerfile .
+
+      - echo "Running container for DAST scan..."
+      - docker run -d -p 8080:8080 --name myapp $ImageName
+
+      - echo "Running OWASP ZAP baseline scan..."
+      - docker run -v $(pwd):/zap/wrk/:rw --network="host" -t owasp/zap2docker-stable \
+          zap-baseline.py -t http://localhost:8080 -r zap_report.html -w zap_warnings.md
   post_build:
     commands:
       - echo Tagging Docker image...
       - docker tag $ImageName:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ImageName:latest
       - echo Pushing Docker image...
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ImageName:latest
+  
+  artifacts:
+    files:
+      - zap_warnings.html
+      - zap_warnings.md

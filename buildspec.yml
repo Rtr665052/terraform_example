@@ -38,5 +38,5 @@ phases:
   
 artifacts:
   files:
-    - zap_warnings.html
+    - zap_report.html
     - zap_warnings.md

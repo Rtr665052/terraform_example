@@ -4,45 +4,20 @@ phases:
   pre_build:
     commands:
       - pip install semgrep
-      - echo "Listing source files:"
-      - ls -al
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-      - echo "Starting Docker service..."
-      - nohup /usr/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 &
-      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+      - semgrep --config=p/ci --error
 
   build:
     commands:
-      - echo "Running SAST with Semgrep..."
-      - semgrep --config=p/ci --error
-
-      - echo "Building Docker image..."
-      - docker build -t $ImageName -f ./Dockerfile .
+      - terraform init
+      - terraform plan -out=tfplan
+      - terraform apply -auto-approve tfplan
 
   post_build:
     commands:
-      - echo "Removing any existing app-under-test container..."
-      - docker rm -f app-under-test || true
-      
-      - echo "Starting app container..."
-      - docker run -d --name app-under-test -p 8080:8080 $ImageName:latest
+      - echo "Running OWASP ZAP scan..."
+      - docker run --rm -v $(pwd)/zap_output:/zap/wrk/:rw zaproxy/zap-stable zap-baseline.py -t http://$APP_PUBLIC_DNS -r zap_report.html -w zap_warnings.md
 
-      - echo "Waiting for app to start..."
-      - timeout 60 sh -c 'until curl -s http://localhost:8080 >/dev/null; do echo "Waiting..."; sleep 5; done' || echo "App did not start in time"
-
-      - echo "Preparing ZAP output directory..."
-      - mkdir -p zap_output
-      - chmod 777 zap_output
-
-      - echo "Running OWASP ZAP baseline scan..."
-      - docker run -v $(pwd)/zap_output:/zap/wrk/:rw --network="host" zaproxy/zap-stable zap-baseline.py -t http://localhost:8080 -r zap_report.html -w zap_warnings.md || true
-
-      - echo "Tagging Docker image..."
-      - docker tag $ImageName:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ImageName:latest
-
-      - echo "Pushing Docker image..."
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ImageName:latest
+     
 
 artifacts:
   files:

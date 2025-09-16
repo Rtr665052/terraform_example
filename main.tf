@@ -59,5 +59,5 @@ resource "aws_instance" "my_app" {
 }
 
 output "app_dns" {
-  value = aws_instance.my_app.public_dns
+  value = aws_instance.my_app.public_ip
 }

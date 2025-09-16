@@ -20,6 +20,26 @@ resource "aws_vpc" "pipeline_vpc" {
   }
 }
 
+resource "aws_security_group" "app_sg" {
+  vpc_id = aws_vpc.pipeline_vpc.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # allow anywhere for testing
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = { Name = "app_sg" }
+}
+
 resource "aws_subnet" "main_subnet" {
   vpc_id            = aws_vpc.pipeline_vpc.id
   cidr_block        = "192.168.1.0/24"
@@ -53,9 +73,19 @@ resource "aws_instance" "my_app" {
   instance_type = "t2.micro"
   subnet_id     = aws_subnet.main_subnet.id
   associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.app_sg.id]
   tags = {
     Name = "my_app_server"
   }
+  
+  user_data = <<-EOF
+              #!/bin/bash
+              yum update -y
+              amazon-linux-extras install nginx1 -y
+              systemctl start nginx
+              systemctl enable nginx
+              echo "<h1>Hello from Terraform EC2</h1>" > /usr/share/nginx/html/index.html
+              EOF
 }
 
 output "app_dns" {

@@ -16,7 +16,7 @@ provider "aws" {
 resource "aws_vpc" "pipeline_vpc" {
   cidr_block = "192.168.0.0/20"
   tags = {
-    Name = "new_vpc"
+    Name = "new_vpc_2"
   }
 }
 

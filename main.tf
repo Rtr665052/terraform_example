@@ -28,3 +28,7 @@ resource "aws_subnet" "main_subnet" {
     Name = "new_subnet"
   }
 }
+
+output "app_dns" {
+  value = aws_instance.my_app.public_dns
+}

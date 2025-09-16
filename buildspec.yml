@@ -22,6 +22,9 @@ phases:
 
   post_build:
     commands:
+      - echo "Removing any existing app-under-test container..."
+      - docker rm -f app-under-test || true
+      
       - echo "Starting app container..."
       - docker run -d --name app-under-test -p 8080:8080 $ImageName:latest
 

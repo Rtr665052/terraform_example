@@ -78,14 +78,39 @@ resource "aws_instance" "my_app" {
     Name = "my_app_server"
   }
   
+  u# Install Nginx & configure security headers on boot
   user_data = <<-EOF
-              #!/bin/bash
-              yum update -y
-              amazon-linux-extras install nginx1 -y
-              systemctl start nginx
-              systemctl enable nginx
-              echo "<h1>Hello from Terraform EC2</h1>" > /usr/share/nginx/html/index.html
-              EOF
+    #!/bin/bash
+    # Update packages
+    yum update -y
+    
+    # Install Nginx
+    amazon-linux-extras install nginx1 -y
+    
+    # Create Nginx config with security headers
+    cat > /etc/nginx/conf.d/default.conf << EOL
+    server {
+        listen 80 default_server;
+
+        location / {
+            root /usr/share/nginx/html;
+            index index.html;
+            
+            # Security headers
+            add_header X-Frame-Options "SAMEORIGIN" always;
+            add_header X-Content-Type-Options "nosniff" always;
+            add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self';" always;
+            add_header Permissions-Policy "geolocation=(), microphone=()" always;
+            add_header X-XSS-Protection "1; mode=block" always;
+            add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        }
+    }
+    EOL
+
+    # Start Nginx
+    systemctl enable nginx
+    systemctl start nginx
+    EOF
 }
 
 output "app_dns" {

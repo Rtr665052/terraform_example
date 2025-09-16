@@ -21,7 +21,7 @@ resource "aws_vpc" "pipeline_vpc" {
 }
 
 resource "aws_subnet" "main_subnet" {
-  vpc_id            = aws_vpc.main_vpc.id
+  vpc_id            = aws_vpc.pipeline_vpc.id
   cidr_block        = "192.168.1.0/24"
   availability_zone = "us-east-2a"
   tags = {

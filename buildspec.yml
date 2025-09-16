@@ -11,32 +11,37 @@ phases:
       - echo "Starting Docker service..."
       - nohup /usr/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 &
       - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+
   build:
     commands:
       - echo "Running SAST with Semgrep..."
       - semgrep --config=p/ci --error
 
-      - echo Building Docker image...
+      - echo "Building Docker image..."
       - docker build -t $ImageName -f ./Dockerfile .
 
+  post_build:
+    commands:
       - echo "Starting app container..."
       - docker run -d --name app-under-test -p 8080:8080 $ImageName:latest
       - echo "Waiting for app to start..."
       - sleep 15
 
-      - echo "Running OWASP ZAP baseline scan..."
+      - echo "Preparing ZAP output directory..."
       - mkdir -p zap_output
       - chmod 777 zap_output
-      - docker run -v $(pwd):/zap/wrk/:rw --network="host" zaproxy/zap-stable zap-baseline.py -t http://localhost:8080 -r zap_report.html -w zap_warnings.md
 
-  post_build:
-    commands:
-      - echo Tagging Docker image...
+      - echo "Running OWASP ZAP baseline scan..."
+      - docker run -v $(pwd)/zap_output:/zap/wrk/:rw --network="host" zaproxy/zap-stable \
+          zap-baseline.py -t http://localhost:8080 -r zap_report.html -w zap_warnings.md
+
+      - echo "Tagging Docker image..."
       - docker tag $ImageName:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ImageName:latest
-      - echo Pushing Docker image...
+
+      - echo "Pushing Docker image..."
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ImageName:latest
-  
+
 artifacts:
   files:
-    - zap_report.html
-    - zap_warnings.md
+    - zap_output/zap_report.html
+    - zap_output/zap_warnings.md

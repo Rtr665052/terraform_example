@@ -25,7 +25,8 @@ phases:
       - echo "Starting app container..."
       - docker run -d --name app-under-test -p 8080:8080 $ImageName:latest
       - echo "Waiting for app to start..."
-      - sleep 15
+      - echo "Waiting for app to become available..."
+      - timeout 60 sh -c 'until curl -s http://localhost:8080 >/dev/null; do echo "Waiting..."; sleep 5; done'
 
       - echo "Preparing ZAP output directory..."
       - mkdir -p zap_output

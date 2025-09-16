@@ -33,8 +33,7 @@ phases:
       - chmod 777 zap_output
 
       - echo "Running OWASP ZAP baseline scan..."
-      - docker run -v $(pwd)/zap_output:/zap/wrk/:rw --network="host" zaproxy/zap-stable \
-          zap-baseline.py -t http://localhost:8080 -r zap_report.html -w zap_warnings.md || true
+      - docker run -v $(pwd)/zap_output:/zap/wrk/:rw --network="host" zaproxy/zap-stable zap-baseline.py -t http://localhost:8080 -r zap_report.html -w zap_warnings.md || true
 
       - echo "Tagging Docker image..."
       - docker tag $ImageName:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ImageName:latest

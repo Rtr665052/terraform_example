@@ -17,8 +17,6 @@ phases:
       - terraform plan -out=tfplan
       - terraform apply -auto-approve tfplan
       - APP_PUBLIC_DNS=$(terraform output -raw app_dns)
-      - echo "App DNS: $APP_PUBLIC_DNS"
-
 
   post_build:
     commands:

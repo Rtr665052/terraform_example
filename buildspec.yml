@@ -3,6 +3,11 @@ version: 0.2
 phases:
   pre_build:
     commands:
+      - echo "Installing Terraform..."
+      - wget https://releases.hashicorp.com/terraform/1.6.3/terraform_1.6.3_linux_amd64.zip
+      - unzip terraform_1.6.3_linux_amd64.zip
+      - mv terraform /usr/local/bin/
+      - terraform -version
       - pip install semgrep
       - semgrep --config=p/ci --error
 
@@ -11,10 +16,14 @@ phases:
       - terraform init
       - terraform plan -out=tfplan
       - terraform apply -auto-approve tfplan
+      - APP_PUBLIC_DNS=$(terraform output -raw app_dns)
+      - echo "App DNS: $APP_PUBLIC_DNS"
+
 
   post_build:
     commands:
-      - echo "Running OWASP ZAP scan..."
+      - mkdir -p zap_output
+      - chmod 777 zap_output
       - docker run --rm -v $(pwd)/zap_output:/zap/wrk/:rw zaproxy/zap-stable zap-baseline.py -t http://$APP_PUBLIC_DNS -r zap_report.html -w zap_warnings.md
       - terraform destroy -auto-approve
      

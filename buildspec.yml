@@ -16,7 +16,7 @@ phases:
     commands:
       - echo "Running OWASP ZAP scan..."
       - docker run --rm -v $(pwd)/zap_output:/zap/wrk/:rw zaproxy/zap-stable zap-baseline.py -t http://$APP_PUBLIC_DNS -r zap_report.html -w zap_warnings.md
-
+      - terraform destroy -auto-approve
      
 
 artifacts:

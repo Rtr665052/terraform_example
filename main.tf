@@ -78,7 +78,6 @@ resource "aws_instance" "my_app" {
     Name = "my_app_server"
   }
   
-  u# Install Nginx & configure security headers on boot
   user_data = <<-EOF
     #!/bin/bash
     # Update packages

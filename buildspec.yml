@@ -20,19 +20,19 @@ phases:
 
   post_build:
     commands:
-      #- echo "Waiting for app at $APP_PUBLIC_DNS..."
-      #- for i in {1..10}; do
-      #    if curl -s --head http://$APP_PUBLIC_DNS | grep "200 OK"; then
-       #     echo "App is up!";
-        #    break;
-         # else
-          #  echo "Waiting...";
-           # sleep 10;
-         # fi
-       # done
-      #- mkdir -p zap_output
-      #- chmod 777 zap_output
-      #- docker run --rm -v $(pwd)/zap_output:/zap/wrk/:rw zaproxy/zap-stable zap-baseline.py -t http://$APP_PUBLIC_DNS -r zap_report.html -w zap_warnings.md
+      - echo "Waiting for app at $APP_PUBLIC_DNS..."
+      - for i in {1..10}; do
+          if curl -s --head http://$APP_PUBLIC_DNS | grep "200 OK"; then
+            echo "App is up!";
+            break;
+          else
+            echo "Waiting...";
+            sleep 10;
+          fi
+        done
+      - mkdir -p zap_output
+      - chmod 777 zap_output
+      - docker run --rm -v $(pwd)/zap_output:/zap/wrk/:rw zaproxy/zap-stable zap-baseline.py -t http://$APP_PUBLIC_DNS -r zap_report.html -w zap_warnings.md
       - terraform destroy -auto-approve
      
 

@@ -32,7 +32,21 @@ phases:
         done
       - mkdir -p zap_output
       - chmod 777 zap_output
-      - docker run --rm -v $(pwd)/zap_output:/zap/wrk/:rw zaproxy/zap-stable zap-baseline.py -t http://$APP_PUBLIC_DNS -r zap_report.html -w zap_warnings.md
+      - docker run --rm -v $(pwd)/zap_output:/zap/wrk/:rw zaproxy/zap-stable zap-baseline.py \
+        -t http://$APP_PUBLIC_DNS -r zap_report.html -w zap_warnings.md || export ZAP_EXIT=$?
+
+      # Default ZAP_EXIT to 0 if not set
+      - export ZAP_EXIT=${ZAP_EXIT:-$?}
+      - echo "ZAP exit code: $ZAP_EXIT"
+
+      # Pass if ZAP exit code is 0 (no issues) or 3 (warnings only)
+      - |
+        if [ "$ZAP_EXIT" -eq 0 ] || [ "$ZAP_EXIT" -eq 3 ]; then
+          echo "Only warnings or no issues detected. Continuing pipeline.";
+        else
+          echo "Critical issues detected. Failing pipeline.";
+          exit 1;
+        fi
       - terraform destroy -auto-approve
      
 

@@ -37,7 +37,6 @@ phases:
 
       # Default ZAP_EXIT to 0 if not set
       - export ZAP_EXIT=${ZAP_EXIT:-$?}
-      - echo "ZAP exit code: $ZAP_EXIT"
 
       # Pass if ZAP exit code is 0 (no issues) or 3 (warnings only)
       - |

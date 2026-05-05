@@ -246,8 +246,8 @@ aws sts get-caller-identity
 Clone the repository:
 
 ```
-git clone https://github.com/Rtr665052/terraform_example.git
-cd terraform_example
+git clone https://github.com/Rtr665052/CodePipeline_Terraform.git
+cd CodePipeline_Terraform
 ```
 
 Initialize Terraform:
